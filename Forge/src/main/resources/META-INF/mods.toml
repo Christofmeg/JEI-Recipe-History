@@ -1,0 +1,38 @@
+modLoader="javafml"
+loaderVersion="[40,)"
+issueTrackerURL="https://github.com/Christofmeg/JEI-Recipe-History/issues" #optional
+license="The MIT License (MIT)"
+[[mods]]
+modId="jeirecipehistory"
+version="${file.jarVersion}"
+displayName="JEI Recipe History"
+displayURL="https://github.com/Christofmeg/JEI-Recipe-History" #optional
+logoFile="jeirecipehistory.png"
+authors="Christofmeg"
+description="Client side history of recent JEI recipe lookups."
+[[dependencies.jeirecipehistory]]
+    modId="forge"
+    mandatory=true
+    versionRange="[40.0.7,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.jeirecipehistory]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.18,1.19)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.jeirecipehistory]]
+    modId="jei"
+    mandatory=true
+    versionRange="[9.6.0.179,10)"
+    ordering="AFTER"
+    side="CLIENT"
+#[[dependencies.jeirecipehistory]]
+#    modId="jeiutilities"
+#    mandatory=false
+#    versionRange="any"
+#    ordering="BEFORE"
+#    side="CLIENT"
+[modproperties.jeirecipehistory]
+    catalogueImageIcon="jeirecipehistory-icon.png"

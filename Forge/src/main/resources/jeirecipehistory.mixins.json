@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.christofmeg.jeirecipehistory.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "accessor.RecipeGuiLogicAccessor",
+    "accessor.BookmarkOverlayAccessor",
+    "accessor.IngredientGridAccessor",
+    "accessor.RecipeLayoutAccessor",
+    "accessor.RecipesGuiAccessor"
+  ]
+}
