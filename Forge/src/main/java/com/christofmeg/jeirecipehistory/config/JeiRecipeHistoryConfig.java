@@ -16,6 +16,8 @@ public class JeiRecipeHistoryConfig {
 
     public final static class ClientConfig {
 
+        private final ForgeConfigSpec.BooleanValue disableAllModFeatures;
+        private final ForgeConfigSpec.BooleanValue enableRecipeHistory;
         private final ForgeConfigSpec.BooleanValue shouldMatchNBTTags;
         private final ForgeConfigSpec.IntValue rowCount;
         private final ForgeConfigSpec.IntValue borderTint;
@@ -23,14 +25,24 @@ public class JeiRecipeHistoryConfig {
         public ClientConfig(ForgeConfigSpec.Builder builder) {
             builder.push("client-settings");
             {
-                shouldMatchNBTTags = builder.comment("Match NBT tags when adding items to recipe history").define("Match NBT tags", true);
+                enableRecipeHistory = builder.comment("Set this to false to toggle Recipe History").define("Show Recipe History", true);
+                shouldMatchNBTTags = builder.comment("Match NBT tags when adding items to recipe history").define("Match NBT Tags", true);
                 rowCount = builder.comment("Number of rows the recipe history should display items on").defineInRange("Row Count", 2, 1, 5);
                 borderTint = builder.comment("Customize the recipe history border tint").defineInRange("Border Tint", 0xee555555, Integer.MIN_VALUE, Integer.MAX_VALUE);
+                disableAllModFeatures = builder.comment("Set this to true to disable all JEI Recipe History related features, including the configuration button").define("Toggle All Features", false);
             }
             builder.pop();
         }
     }
 
+    public static boolean isAllModFeatuesDisabled() {
+        return CLIENT_CONFIG.disableAllModFeatures.get();
+
+    }
+    public static boolean isRecipeHistoryEnabled() {
+        return CLIENT_CONFIG.enableRecipeHistory.get();
+
+    }
     public static boolean shouldMatchNBTTags() {
         return CLIENT_CONFIG.shouldMatchNBTTags.get();
     }

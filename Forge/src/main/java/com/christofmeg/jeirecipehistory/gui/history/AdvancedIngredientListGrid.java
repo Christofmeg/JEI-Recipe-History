@@ -61,49 +61,19 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
     private int historyMaxSize;
     private int historyHeight;
 
-    public static IngredientGrid create(
-            RegisteredIngredients registeredIngredients,
-            IIngredientGridConfig gridConfig,
-            IEditModeConfig editModeConfig,
-            IIngredientFilterConfig ingredientFilterConfig,
-            IClientConfig clientConfig,
-            IWorldConfig worldConfig,
-            GuiScreenHelper guiScreenHelper,
-            IModIdHelper modIdHelper,
-            IConnectionToServer serverConnection
+
+    public static IngredientGrid create(RegisteredIngredients registeredIngredients, IIngredientGridConfig gridConfig, IEditModeConfig editModeConfig, IIngredientFilterConfig ingredientFilterConfig, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IModIdHelper modIdHelper, IConnectionToServer serverConnection
     ) {
-        return JeiRecipeHistoryPlugin.historyGrid = new AdvancedIngredientListGrid(
-                registeredIngredients,
-                gridConfig,
-                editModeConfig,
-                ingredientFilterConfig,
-                clientConfig,
-                worldConfig,
-                guiScreenHelper,
-                modIdHelper,
-                serverConnection);
+        if (JeiRecipeHistoryConfig.isRecipeHistoryEnabled() && !JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            return JeiRecipeHistoryPlugin.historyGrid = new AdvancedIngredientListGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
+        }
+        else {
+            return new IngredientGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
+        }
     }
 
-    public AdvancedIngredientListGrid(
-            RegisteredIngredients registeredIngredients,
-            IIngredientGridConfig gridConfig,
-            IEditModeConfig editModeConfig,
-            IIngredientFilterConfig ingredientFilterConfig,
-            IClientConfig clientConfig,
-            IWorldConfig worldConfig,
-            GuiScreenHelper guiScreenHelper,
-            IModIdHelper modIdHelper,
-            IConnectionToServer serverConnection) {
-        super(registeredIngredients,
-                gridConfig,
-                editModeConfig,
-                ingredientFilterConfig,
-                clientConfig,
-                worldConfig,
-                guiScreenHelper,
-                modIdHelper,
-                serverConnection
-        );
+    public AdvancedIngredientListGrid(RegisteredIngredients registeredIngredients, IIngredientGridConfig gridConfig, IEditModeConfig editModeConfig, IIngredientFilterConfig ingredientFilterConfig, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IModIdHelper modIdHelper, IConnectionToServer serverConnection) {
+        super(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
         this.historyListRender = new IngredientListRenderer(editModeConfig, worldConfig, registeredIngredients);
         this.historyList = new ArrayList<>();
     }
@@ -118,9 +88,35 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
         if (area.isEmpty()) {
             return false;
         }
+        calculateIngredientListGrid(area, exclusionAreas);
 
+        if (!JeiRecipeHistoryConfig.isRecipeHistoryEnabled() || JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            accessor.getIngredientListRenderer().clear();
+            this.historyListRender.clear();
+            accessor.setArea(calculateBounds(accessor.getGridConfig(), availableArea));
+            area = calculateBounds(accessor.getGridConfig(), availableArea, INGREDIENT_WIDTH, INGREDIENT_HEIGHT);
+            if (area.isEmpty()) {
+                return false;
+            }
+            for (int y = area.getY(); y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
+                for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
+                    IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
+                    ImmutableRect2i stackArea = ingredientListSlot.getArea();
+                    final boolean blocked = MathUtil.intersects(exclusionAreas, stackArea);
+                    ingredientListSlot.setBlocked(blocked);
+                    accessor.getIngredientListRenderer().add(ingredientListSlot);
+                }
+            }
+            this.historyListRender.set(0, this.historyList);
+        }
+
+//TODO if history OFF when logging into world, RECIPE HISTORY feature does not activate when activated in config
+
+        return true;
+    }
+
+    private void calculateIngredientListGrid(ImmutableRect2i area, @NotNull Collection<ImmutableRect2i> exclusionAreas) {
         historyHeight = showHistory ? JeiRecipeHistoryConfig.getRowCount() * INGREDIENT_HEIGHT : 0;
-
         for (int y = area.getY(); y < area.getY() + area.getHeight() - historyHeight; y += INGREDIENT_HEIGHT) {
             for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
                 IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
@@ -130,7 +126,6 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
                 accessor.getIngredientListRenderer().add(ingredientListSlot);
             }
         }
-
         if (showHistory) {
             int startY = area.getY() + area.getHeight() - historyHeight;
             for (int y = startY; y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
@@ -142,83 +137,103 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
                     historyListRender.add(ingredientListSlot);
                 }
             }
-            this.historyListRender.set(0, this.historyList);
         }
-
-        return true;
     }
 
     private ImmutableRect2i calculateBounds(IIngredientGridConfig config, ImmutableRect2i availableArea) {
         final int columns = Math.min(availableArea.getWidth() / IngredientGrid.INGREDIENT_WIDTH, config.getMaxColumns());
         final int rows = Math.min(availableArea.getHeight() / IngredientGrid.INGREDIENT_HEIGHT, config.getMaxRows());
         this.showHistory = rows - JeiRecipeHistoryConfig.getRowCount() >= MIN_ROWS;
-
         if (rows < config.getMinRows() || columns < config.getMinColumns()) {
             return ImmutableRect2i.EMPTY;
         }
         this.historyMaxSize = JeiRecipeHistoryConfig.getRowCount() * columns;
         final int width = columns * IngredientGrid.INGREDIENT_WIDTH;
         final int height = rows * IngredientGrid.INGREDIENT_HEIGHT;
-
         final int x = switch (config.getHorizontalAlignment()) {
             case LEFT -> availableArea.getX();
             case CENTER -> availableArea.getX() + ((availableArea.getWidth() - width) / 2);
             case RIGHT -> availableArea.getX() + (availableArea.getWidth() - width);
         };
-
         final int y = switch (config.getVerticalAlignment()) {
             case TOP -> availableArea.getY();
             case CENTER -> availableArea.getY() + ((availableArea.getHeight() - height) / 2);
             case BOTTOM -> availableArea.getY() + (availableArea.getHeight() - height);
         };
+        return new ImmutableRect2i(x, y, width, height);
+    }
 
+    /**
+     * copy from mezz.jei.gui.overlay.IngredientGrid#calculateBounds
+     */
+    private static ImmutableRect2i calculateBounds(IIngredientGridConfig config, ImmutableRect2i availableArea, int ingredientWidth, int ingredientHeight) {
+        final int columns = Math.min(availableArea.getWidth() / ingredientWidth, config.getMaxColumns());
+        final int rows = Math.min(availableArea.getHeight() / ingredientHeight, config.getMaxRows());
+        if (rows < config.getMinRows() || columns < config.getMinColumns()) {
+            return ImmutableRect2i.EMPTY;
+        }
+        final int width = columns * ingredientWidth;
+        final int height = rows * ingredientHeight;
+        final int x = switch (config.getHorizontalAlignment()) {
+            case LEFT -> availableArea.getX();
+            case CENTER -> availableArea.getX() + ((availableArea.getWidth() - width) / 2);
+            case RIGHT -> availableArea.getX() + (availableArea.getWidth() - width);
+        };
+        final int y = switch (config.getVerticalAlignment()) {
+            case TOP -> availableArea.getY();
+            case CENTER -> availableArea.getY() + ((availableArea.getHeight() - height) / 2);
+            case BOTTOM -> availableArea.getY() + (availableArea.getHeight() - height);
+        };
         return new ImmutableRect2i(x, y, width, height);
     }
 
     @Override
     public void draw(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
         super.draw(minecraft, poseStack, mouseX, mouseY);
-        if (showHistory) {
-            RenderSystem.disableBlend();
-            this.historyListRender.render(poseStack);
-            if (isMouseOver(mouseX, mouseY)) {
-                DeleteItemInputHandler deleteItemHandler = (DeleteItemInputHandler) this.getInputHandler();
-                if (!deleteItemHandler.shouldDeleteItemOnClick(minecraft, mouseX, mouseY)) {
-                    this.historyListRender.getSlots()
-                            .filter(s -> s.isMouseOver(mouseX, mouseY))
-                            .map(IngredientListSlot::getIngredientRenderer)
-                            .flatMap(Optional::stream)
-                            .map(ElementRenderer::getArea)
-                            .findFirst()
-                            .ifPresent(area -> drawHighlight(poseStack, area));
+        if(JeiRecipeHistoryConfig.isRecipeHistoryEnabled() && !JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            if (showHistory) {
+                RenderSystem.disableBlend();
+                this.historyListRender.render(poseStack);
+                if (isMouseOver(mouseX, mouseY)) {
+                    DeleteItemInputHandler deleteItemHandler = (DeleteItemInputHandler) this.getInputHandler();
+                    if (!deleteItemHandler.shouldDeleteItemOnClick(minecraft, mouseX, mouseY)) {
+                        this.historyListRender.getSlots()
+                                .filter(s -> s.isMouseOver(mouseX, mouseY))
+                                .map(IngredientListSlot::getIngredientRenderer)
+                                .flatMap(Optional::stream)
+                                .map(ElementRenderer::getArea)
+                                .findFirst()
+                                .ifPresent(area -> drawHighlight(poseStack, area));
+                    }
                 }
+                ImmutableRect2i area = this.getArea();
+                int endX = area.getX() + area.getWidth();
+                int startY = area.getY() + area.getHeight() - historyHeight;
+                int endY = area.getY() + area.getHeight();
+                int colour = JeiRecipeHistoryConfig.getBorderTint();
+
+                drawHorizontalDashedLine(poseStack, area.getX(), endX, startY, colour, false);
+                drawHorizontalDashedLine(poseStack, area.getX(), endX, endY, colour, true);
+
+                drawVerticalDashedLine(poseStack, area.getX(), startY, endY, colour, false);
+                drawVerticalDashedLine(poseStack, endX - 1, startY, endY, colour, true);
+
             }
-            ImmutableRect2i area = this.getArea();
-            int endX = area.getX() + area.getWidth();
-            int startY = area.getY() + area.getHeight() - historyHeight;
-            int endY = area.getY() + area.getHeight();
-            int colour = JeiRecipeHistoryConfig.getBorderTint();
-
-            drawHorizontalDashedLine(poseStack, area.getX(), endX, startY, colour, false);
-            drawHorizontalDashedLine(poseStack, area.getX(), endX, endY, colour, true);
-
-            drawVerticalDashedLine(poseStack, area.getX(), startY, endY, colour, false);
-            drawVerticalDashedLine(poseStack, endX - 1, startY, endY, colour, true);
-
-
         }
     }
 
     @Override
     public void drawTooltips(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
         super.drawTooltips(minecraft, poseStack, mouseX, mouseY);
-        if (isMouseOver(mouseX, mouseY)) {
-            this.historyListRender.getSlots()
-                    .filter(s -> s.isMouseOver(mouseX, mouseY))
-                    .map(IngredientListSlot::getTypedIngredient)
-                    .flatMap(Optional::stream)
-                    .findFirst()
-                    .ifPresent(ingredient -> accessor.getTooltipHelper().drawTooltip(poseStack, mouseX, mouseY, ingredient));
+        if(JeiRecipeHistoryConfig.isRecipeHistoryEnabled() && !JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            if (isMouseOver(mouseX, mouseY)) {
+                this.historyListRender.getSlots()
+                        .filter(s -> s.isMouseOver(mouseX, mouseY))
+                        .map(IngredientListSlot::getTypedIngredient)
+                        .flatMap(Optional::stream)
+                        .findFirst()
+                        .ifPresent(ingredient -> accessor.getTooltipHelper().drawTooltip(poseStack, mouseX, mouseY, ingredient));
+            }
         }
     }
 

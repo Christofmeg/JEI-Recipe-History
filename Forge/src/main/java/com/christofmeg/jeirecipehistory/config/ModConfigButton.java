@@ -51,11 +51,13 @@ public class ModConfigButton extends GuiIconToggleButton {
 
     @Override
     protected boolean onMouseClicked(@NotNull UserInput input) {
-        if (this.bookmarkOverlay.hasRoom()) {
-            if (!input.isSimulate()) {
-                openSettings();
+        if (!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            if (this.bookmarkOverlay.hasRoom()) {
+                if (!input.isSimulate()) {
+                    openSettings();
+                }
+                return true;
             }
-            return true;
         }
         return false;
     }

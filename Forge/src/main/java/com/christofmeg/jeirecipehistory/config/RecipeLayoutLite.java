@@ -106,14 +106,4 @@ public class RecipeLayoutLite<R> extends RecipeLayout<R> {
         return false;
     }
 
-    public void transferRecipe(AbstractContainerMenu container, RecipeLayout<?> recipeLayout, Player player, boolean maxTransfer) {
-        RecipeTransferUtil.transferRecipe(JeiRecipeHistoryPlugin.recipeTransferManager, container, recipeLayout, player, maxTransfer);
-    }
-
-    public IRecipeTransferError getTransferRecipeError(AbstractContainerMenu container, RecipeLayout<?> recipeLayout, Player player, boolean update) {
-        if (this.error == null || update) {
-            this.error = RecipeTransferUtil.getTransferRecipeError(JeiRecipeHistoryPlugin.recipeTransferManager, container, recipeLayout, player);
-        }
-        return error;
-    }
 }

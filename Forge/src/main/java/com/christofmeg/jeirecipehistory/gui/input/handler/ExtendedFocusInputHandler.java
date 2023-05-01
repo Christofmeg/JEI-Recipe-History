@@ -1,5 +1,6 @@
 package com.christofmeg.jeirecipehistory.gui.input.handler;
 
+import com.christofmeg.jeirecipehistory.config.JeiRecipeHistoryConfig;
 import com.christofmeg.jeirecipehistory.gui.jei.JeiRecipeHistoryPlugin;
 import com.christofmeg.jeirecipehistory.recipe.IRecipeInfo;
 import mezz.jei.api.recipe.IFocus;
@@ -32,7 +33,11 @@ public class ExtendedFocusInputHandler implements IUserInputHandler {
 
     @SuppressWarnings("unused")
     public static IUserInputHandler create(CombinedRecipeFocusSource focusSource, RecipesGui recipesGui) {
-        return new ExtendedFocusInputHandler(focusSource, recipesGui);
+        if (JeiRecipeHistoryConfig.isRecipeHistoryEnabled() && !JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            return new ExtendedFocusInputHandler(focusSource, recipesGui);
+        } else {
+            return new FocusInputHandler(focusSource, recipesGui);
+        }
     }
 
     public ExtendedFocusInputHandler(CombinedRecipeFocusSource focusSource, RecipesGui recipesGui) {
@@ -46,28 +51,26 @@ public class ExtendedFocusInputHandler implements IUserInputHandler {
     }
 
     private Optional<IUserInputHandler> handleOriginalShow(UserInput input) {
-        return input.is(KeyBindings.showRecipe) ? handleShow(input, SHOW_RECIPE_ROLES)
-                : input.is(KeyBindings.showUses) ? handleShow(input, SHOW_USES_ROLES)
-                : Optional.empty();
+            return input.is(KeyBindings.showRecipe) ? handleShow(input, SHOW_RECIPE_ROLES)
+                    : input.is(KeyBindings.showUses) ? handleShow(input, SHOW_USES_ROLES)
+                    : Optional.empty();
     }
 
     private Optional<IUserInputHandler> handleShow(UserInput input, List<RecipeIngredientRole> roles) {
         boolean simulate = input.isSimulate();
         Optional<IClickedIngredient<?>> optionalClicked = focusSource.getIngredientUnderMouse(input)
                 .findFirst();
-
         optionalClicked.ifPresent(clicked -> {
             if (!simulate) {
                 List<IFocus<?>> focuses = roles.stream()
                         .<IFocus<?>>map(role -> new Focus<>(role, clicked.getTypedIngredient()))
                         .toList();
-
-                JeiRecipeHistoryPlugin.historyGrid.addHistory(clicked.getTypedIngredient());
-
+                if (JeiRecipeHistoryConfig.isRecipeHistoryEnabled() && !JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+                    JeiRecipeHistoryPlugin.historyGrid.addHistory(clicked.getTypedIngredient());
+                }
                 recipesGui.show(focuses);
             }
         });
-
         return optionalClicked.map(clicked -> LimitedAreaInputHandler.create(this, clicked.getArea()));
     }
 
