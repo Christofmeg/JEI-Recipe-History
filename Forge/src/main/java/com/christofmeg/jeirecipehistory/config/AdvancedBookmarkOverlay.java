@@ -58,7 +58,7 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
             IConnectionToServer serverConnection
     ) {
         if(!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()){
-            ;return new AdvancedBookmarkOverlay(bookmarkList, textures, contents, clientConfig, worldConfig, guiScreenHelper, serverConnection);
+            return new AdvancedBookmarkOverlay(bookmarkList, textures, contents, clientConfig, worldConfig, guiScreenHelper, serverConnection);
         }
         else {
             return new BookmarkOverlay(bookmarkList, textures, contents, clientConfig, worldConfig, guiScreenHelper, serverConnection);
