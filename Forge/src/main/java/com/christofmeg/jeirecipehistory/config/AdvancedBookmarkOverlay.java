@@ -57,7 +57,12 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
             GuiScreenHelper guiScreenHelper,
             IConnectionToServer serverConnection
     ) {
+        if(!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()){
             return new AdvancedBookmarkOverlay(bookmarkList, textures, contents, clientConfig, worldConfig, guiScreenHelper, serverConnection);
+        }
+        else {
+            return new BookmarkOverlay(bookmarkList, textures, contents, clientConfig, worldConfig, guiScreenHelper, serverConnection);
+        }
     }
 
     public AdvancedBookmarkOverlay(BookmarkList bookmarkList, Textures textures, IngredientGridWithNavigation contents, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IConnectionToServer serverConnection) {
@@ -99,13 +104,15 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
       this.recordConfigButton.updateBounds(recordConfigArea);
   }
 */
-        ImmutableRect2i recordConfigArea = parentArea
-                .matchWidthAndX(contentsArea)
-                .keepBottom(BUTTON_SIZE_RECIPE_HISTORY_CONFIG)
-                .keepLeft(BUTTON_SIZE_RECIPE_HISTORY_CONFIG)
-                .addOffset(BUTTON_SIZE_RECIPE_HISTORY_CONFIG + SPACE_BETWEEN_BUTTONS, 0);
-        this.recordConfigButton.updateBounds(recordConfigArea);
 
+        if(!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()){
+            ImmutableRect2i recordConfigArea = parentArea
+                    .matchWidthAndX(contentsArea)
+                    .keepBottom(BUTTON_SIZE_RECIPE_HISTORY_CONFIG)
+                    .keepLeft(BUTTON_SIZE_RECIPE_HISTORY_CONFIG)
+                    .addOffset(BUTTON_SIZE_RECIPE_HISTORY_CONFIG + SPACE_BETWEEN_BUTTONS, 0);
+            this.recordConfigButton.updateBounds(recordConfigArea);
+        }
         accessor.getBookmarkButton().updateBounds(bookmarkButtonArea);
         if (contentsHasRoom) {
             contents.updateLayout(false);
@@ -116,31 +123,35 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
     @Override
     public void drawScreen(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(minecraft, poseStack, mouseX, mouseY, partialTicks);
-        this.recordConfigButton.draw(poseStack, mouseX, mouseY, partialTicks);
+        if(!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            this.recordConfigButton.draw(poseStack, mouseX, mouseY, partialTicks);
+        }
     }
 
     @Override
     public void drawTooltips(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
-        boolean renderRecipe = false;
-        Optional<ITypedIngredient<?>> ingredient = getIngredientUnderMouse();
-        if (ingredient.isPresent() && ingredient.get().getIngredient() instanceof IRecipeInfo info) {
-            RecipeLayoutLite<Object> recipeLayout;
-            if (this.infoUnderMouse == info) {
-                recipeLayout = this.recipeLayout;
-            } else {
-                this.infoUnderMouse = info;
-                recipeLayout = RecipeLayoutLite.create(info.getRecipeCategory(), info.getRecipe(), info.getFocusGroup(), mouseX, mouseY);
-                this.recipeLayout = recipeLayout;
+        if(!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            boolean renderRecipe = false;
+            Optional<ITypedIngredient<?>> ingredient = getIngredientUnderMouse();
+            if (ingredient.isPresent() && ingredient.get().getIngredient() instanceof IRecipeInfo info) {
+                RecipeLayoutLite<Object> recipeLayout;
+                if (this.infoUnderMouse == info) {
+                    recipeLayout = this.recipeLayout;
+                } else {
+                    this.infoUnderMouse = info;
+                    recipeLayout = RecipeLayoutLite.create(info.getRecipeCategory(), info.getRecipe(), info.getFocusGroup(), mouseX, mouseY);
+                    this.recipeLayout = recipeLayout;
+                }
+                if (recipeLayout != null) {
+                    updatePosition(mouseX, mouseY);
+                    recipeLayout.drawRecipe(poseStack, mouseX, mouseY);
+                    renderRecipe = true;
+                }
             }
-            if (recipeLayout != null) {
-                updatePosition(mouseX, mouseY);
-                recipeLayout.drawRecipe(poseStack, mouseX, mouseY);
-                renderRecipe = true;
+            if (!renderRecipe) {
+                super.drawTooltips(minecraft, poseStack, mouseX, mouseY);
+                this.recordConfigButton.drawTooltips(poseStack, mouseX, mouseY);
             }
-        }
-        if (!renderRecipe) {
-            super.drawTooltips(minecraft, poseStack, mouseX, mouseY);
-            this.recordConfigButton.drawTooltips(poseStack, mouseX, mouseY);
         }
     }
 

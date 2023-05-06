@@ -9,9 +9,11 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 @Mixin(value = RecipesGui.class, remap = false)
 public interface RecipesGuiAccessor {
 
+    @SuppressWarnings("unused")
     @Accessor
     IRecipeGuiLogic getLogic();
 
+    @SuppressWarnings("unused")
     @Accessor
     RecipeTransferManager getRecipeTransferManager();
 
