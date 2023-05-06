@@ -51,16 +51,14 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
 
     private static final int INGREDIENT_PADDING = 1;
     private static final int MIN_ROWS = 5;
-
     private final IngredientGridAccessor accessor = (IngredientGridAccessor) this;
-
     private final IngredientListRenderer historyListRender;
     private final List<ITypedIngredient<?>> historyList;
-
     private boolean showHistory;
     private int historyMaxSize;
     private int historyHeight;
 
+<<<<<<< Updated upstream
     public static IngredientGrid create(
             RegisteredIngredients registeredIngredients,
             IIngredientGridConfig gridConfig,
@@ -82,6 +80,16 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
                 guiScreenHelper,
                 modIdHelper,
                 serverConnection);
+=======
+    @SuppressWarnings("unused")
+    public static IngredientGrid create(RegisteredIngredients registeredIngredients, IIngredientGridConfig gridConfig, IEditModeConfig editModeConfig, IIngredientFilterConfig ingredientFilterConfig, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IModIdHelper modIdHelper, IConnectionToServer serverConnection
+    ) {
+        if(JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            return new IngredientGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
+        } else {
+            return JeiRecipeHistoryPlugin.historyGrid = new AdvancedIngredientListGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
+        }
+>>>>>>> Stashed changes
     }
 
     public AdvancedIngredientListGrid(
@@ -108,17 +116,29 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
         this.historyList = new ArrayList<>();
     }
 
+    /**
+     * Draws Ingredient list, config buttons, bookmarks and recipe history on screen
+     */
     @Override
     public boolean updateBounds(@NotNull ImmutableRect2i availableArea, @NotNull Collection<ImmutableRect2i> exclusionAreas) {
+        /**
+         * Updates ingredient list
+         */
         accessor.getIngredientListRenderer().clear();
         this.historyListRender.clear();
 
+        /**
+         * Draws searchbar and ingredient grid pages
+         */
         accessor.setArea(calculateBounds(accessor.getGridConfig(), availableArea));
         ImmutableRect2i area = this.getArea();
         if (area.isEmpty()) {
             return false;
         }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         historyHeight = showHistory ? JeiRecipeHistoryConfig.getRowCount() * INGREDIENT_HEIGHT : 0;
 
         for (int y = area.getY(); y < area.getY() + area.getHeight() - historyHeight; y += INGREDIENT_HEIGHT) {
@@ -144,11 +164,38 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
             }
             this.historyListRender.set(0, this.historyList);
         }
+<<<<<<< Updated upstream
+=======
+        /**
+         * Makes sure the recipe history renders items when gui screen size changes
+         */
+        this.historyListRender.set(0, this.historyList);
+
+        if (!JeiRecipeHistoryConfig.isRecipeHistoryEnabled() || JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            accessor.getIngredientListRenderer().clear();
+            this.historyListRender.clear();
+
+            accessor.setArea(calculateBounds(accessor.getGridConfig(), availableArea));
+            if (area.isEmpty()) {
+                return false;
+            }
+
+            for (int y = area.getY(); y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
+                for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
+                    IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
+                    ImmutableRect2i stackArea = ingredientListSlot.getArea();
+                    final boolean blocked = MathUtil.intersects(exclusionAreas, stackArea);
+                    ingredientListSlot.setBlocked(blocked);
+                    accessor.getIngredientListRenderer().add(ingredientListSlot);
+                }
+            }
+        }
+>>>>>>> Stashed changes
 
         return true;
     }
 
-    private ImmutableRect2i calculateBounds(IIngredientGridConfig config, ImmutableRect2i availableArea) {
+    private ImmutableRect2i calculateBounds(@NotNull IIngredientGridConfig config, @NotNull ImmutableRect2i availableArea) {
         final int columns = Math.min(availableArea.getWidth() / IngredientGrid.INGREDIENT_WIDTH, config.getMaxColumns());
         final int rows = Math.min(availableArea.getHeight() / IngredientGrid.INGREDIENT_HEIGHT, config.getMaxRows());
         this.showHistory = rows - JeiRecipeHistoryConfig.getRowCount() >= MIN_ROWS;
@@ -192,6 +239,20 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
                             .findFirst()
                             .ifPresent(area -> drawHighlight(poseStack, area));
                 }
+<<<<<<< Updated upstream
+=======
+                ImmutableRect2i area = this.getArea();
+                int endX = area.getX() + area.getWidth();
+                int startY = area.getY() + area.getHeight() - historyHeight;
+                int endY = area.getY() + area.getHeight();
+                int colour = JeiRecipeHistoryConfig.getBorderTint();
+
+                drawHorizontalDashedLine(poseStack, area.getX(), endX, startY, colour, false);
+                drawHorizontalDashedLine(poseStack, area.getX(), endX, endY, colour, true);
+
+                drawVerticalDashedLine(poseStack, area.getX(), startY, endY, colour, false);
+                drawVerticalDashedLine(poseStack, endX - 1, startY, endY, colour, true);
+>>>>>>> Stashed changes
             }
             ImmutableRect2i area = this.getArea();
             int endX = area.getX() + area.getWidth();
@@ -323,7 +384,7 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
     /**
      * copy from mezz.jei.bookmarks.BookmarkList#equal(IIngredientHelper, ITypedIngredient, String, ITypedIngredient)
      */
-    private static <T> boolean equal(IIngredientHelper<T> ingredientHelper, ITypedIngredient<T> a, String uidA, ITypedIngredient<?> b) {
+    private static <T> boolean equal(IIngredientHelper<T> ingredientHelper, @NotNull ITypedIngredient<T> a, String uidA, @NotNull ITypedIngredient<?> b) {
         if (a.getIngredient() == b.getIngredient()) {
             return true;
         }
