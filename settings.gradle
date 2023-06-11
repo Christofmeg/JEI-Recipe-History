@@ -13,4 +13,6 @@ pluginManagement {
 }
 
 rootProject.name = 'JEI Recipe History'
-include("Common", "Fabric", "Forge")
+include("Common",
+ //       "Fabric",
+        "Forge")

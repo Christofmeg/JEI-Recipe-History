@@ -15,7 +15,7 @@ apply plugin: 'eclipse'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'maven-publish'
 
-archivesBaseName = "${mod_name}-forge-${minecraft_version}"
+archivesBaseName = "${mod_id}-forge-${minecraft_version}"
 
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
