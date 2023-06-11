@@ -27,10 +27,13 @@ import java.util.Set;
 import static mezz.jei.gui.overlay.IngredientGrid.INGREDIENT_HEIGHT;
 import static mezz.jei.gui.overlay.IngredientGrid.INGREDIENT_WIDTH;
 
+/**
+ * The AdvancedBookmarkOverlay class represents an overlay that displays bookmarks and additional functionality.
+ * It extends the BookmarkOverlay class.
+ */
 public class AdvancedBookmarkOverlay extends BookmarkOverlay {
 
     private static final int SPACE_BETWEEN_BUTTONS = 2;
-
 
     private static final int BUTTON_SIZE = 20;
     private static final int BUTTON_SIZE_BOOKMARK = 20;
@@ -39,14 +42,23 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
     private final GuiIconToggleButton recordConfigButton;
     private final IngredientGridWithNavigation contents;
     
-    @Nullable
-    private RecipeLayoutLite<Object> recipeLayout;
+    private @Nullable RecipeLayoutLite recipeLayout;
     
-    private IRecipeInfo<String, Integer> infoUnderMouse;
+    private IRecipeInfo infoUnderMouse;
 
     /**
-     * Used in constructor_redirect.js
+     * Creates an instance of AdvancedBookmarkOverlay or BookmarkOverlay based on the configuration.
+     *
+     * @param bookmarkList The BookmarkList object.
+     * @param textures The Textures object.
+     * @param contents The IngredientGridWithNavigation object representing the contents of the overlay.
+     * @param clientConfig The IClientConfig object representing the client configuration.
+     * @param worldConfig The IWorldConfig object representing the world configuration.
+     * @param guiScreenHelper The GuiScreenHelper object.
+     * @param serverConnection The IConnectionToServer object representing the server connection.
+     * @return An instance of AdvancedBookmarkOverlay or BookmarkOverlay based on the configuration.
      */
+    // Used in constructor_redirect.js
     @SuppressWarnings("unused")
     public static BookmarkOverlay create(
             BookmarkList bookmarkList,
@@ -65,12 +77,29 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
         }
     }
 
+    /**
+     * Creates an instance of AdvancedBookmarkOverlay.
+     *
+     * @param bookmarkList The BookmarkList object.
+     * @param textures The Textures object.
+     * @param contents The IngredientGridWithNavigation object representing the contents of the overlay.
+     * @param clientConfig The IClientConfig object representing the client configuration.
+     * @param worldConfig The IWorldConfig object representing the world configuration.
+     * @param guiScreenHelper The GuiScreenHelper object.
+     * @param serverConnection The IConnectionToServer object representing the server connection.
+     */
     public AdvancedBookmarkOverlay(BookmarkList bookmarkList, Textures textures, IngredientGridWithNavigation contents, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IConnectionToServer serverConnection) {
         super(bookmarkList, textures, contents, clientConfig, worldConfig, guiScreenHelper, serverConnection);
         this.contents = accessor.getContents();
         this.recordConfigButton = ModConfigButton.create(this);
     }
 
+    /**
+     * Updates the bounds of the overlay based on the provided exclusion areas.
+     *
+     * @param guiExclusionAreas A set of ImmutableRect2i objects representing the exclusion areas on the GUI.
+     * @return true if the contents of the overlay have enough room after the update, false otherwise.
+     */
     @Override
     public boolean updateBounds(@NotNull Set<ImmutableRect2i> guiExclusionAreas) {
         ImmutableRect2i parentArea = accessor.getParentArea();
@@ -120,6 +149,15 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
         return contentsHasRoom;
     }
 
+    /**
+     * Draws the overlay on the screen.
+     *
+     * @param minecraft The Minecraft instance.
+     * @param poseStack The PoseStack instance.
+     * @param mouseX The x-coordinate of the mouse.
+     * @param mouseY The y-coordinate of the mouse.
+     * @param partialTicks The partial tick time.
+     */
     @Override
     public void drawScreen(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(minecraft, poseStack, mouseX, mouseY, partialTicks);
@@ -128,13 +166,21 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
         }
     }
 
+    /**
+     * Draws tooltips on the overlay.
+     *
+     * @param minecraft The Minecraft instance.
+     * @param poseStack The PoseStack instance.
+     * @param mouseX The x-coordinate of the mouse.
+     * @param mouseY The y-coordinate of the mouse.
+     */
     @Override
     public void drawTooltips(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
         if(!JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
             boolean renderRecipe = false;
             Optional<ITypedIngredient<?>> ingredient = getIngredientUnderMouse();
             if (ingredient.isPresent() && ingredient.get().getIngredient() instanceof IRecipeInfo info) {
-                RecipeLayoutLite<Object> recipeLayout;
+                @Nullable RecipeLayoutLite recipeLayout;
                 if (this.infoUnderMouse == info) {
                     recipeLayout = this.recipeLayout;
                 } else {
@@ -166,6 +212,11 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
         }
     }
 
+    /**
+     * Creates and returns the input handler for the overlay.
+     *
+     * @return The IUserInputHandler object representing the input handler.
+     */
     @Override
     public @NotNull IUserInputHandler createInputHandler() {
         final IUserInputHandler bookmarkButtonInputHandler = accessor.getBookmarkButton().createInputHandler();
@@ -183,19 +234,39 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
             return new CombinedInputHandler(bookmarkButtonInputHandler, recordConfigButtonInputHandler);
         });
     }
-    
-    public @Nullable RecipeLayoutLite<Object> getRecipeLayout() {
+
+    /**
+     * Returns the RecipeLayoutLite object associated with the overlay.
+     *
+     * @return The RecipeLayoutLite object representing the recipe layout.
+     */
+    public @Nullable RecipeLayoutLite getRecipeLayout() {
         return recipeLayout;
     }
-    
-    public IRecipeInfo<String, Integer> getInfoUnderMouse() {
+
+    /**
+     * Returns the IRecipeInfo object under the mouse.
+     *
+     * @return The IRecipeInfo object under the mouse.
+     */
+    public IRecipeInfo getInfoUnderMouse() {
         return infoUnderMouse;
     }
-    
+
+    /**
+     * Sets the IRecipeInfo object under the mouse.
+     *
+     * @param infoUnderMouse The IRecipeInfo object to set as the info under the mouse.
+     */
     public void setInfoUnderMouse(IRecipeInfo<String, Integer> infoUnderMouse) {
         this.infoUnderMouse = infoUnderMouse;
     }
 
+    /**
+     * Sets the RecipeLayoutLite object associated with the overlay.
+     *
+     * @param recipeLayout The RecipeLayoutLite object to set as the recipe layout.
+     */
     public void setRecipeLayout(@Nullable RecipeLayoutLite recipeLayout) {
         this.recipeLayout = recipeLayout;
     }

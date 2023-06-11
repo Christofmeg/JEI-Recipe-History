@@ -23,6 +23,7 @@ minecraft {
 
 dependencies {
     compileOnly group:'org.spongepowered', name:'mixin', version:'0.8.5'
+	implementation ("mezz.jei:jei-${minecraft_version}:${jei_version}")
 }
 
 processResources {

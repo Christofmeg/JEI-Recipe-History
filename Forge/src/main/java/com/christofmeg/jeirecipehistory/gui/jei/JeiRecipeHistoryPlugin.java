@@ -22,21 +22,37 @@ import mezz.jei.recipes.RecipeTransferManager;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Plugin class for JEI Recipe History. Implements the {@link IModPlugin} interface.
+ */
 @JeiPlugin
 public class JeiRecipeHistoryPlugin implements IModPlugin {
 
+    /** Reference to the recipe manager. */
     public static IRecipeManager recipeManager;
+    /** Reference to the ingredient manager. */
     public static IIngredientManager ingredientManager;
+    /** Reference to the JEI helpers. */
     public static IJeiHelpers jeiHelpers;
+    /** Reference to the GUI helper. */
     public static IGuiHelper guiHelper;
+    /** Reference to the mod ID helper. */
     public static IModIdHelper modIdHelper;
+    /** Reference to the focus factory. */
     public static IFocusFactory focusFactory;
+    /** Reference to the recipe GUI logic. */
     public static IRecipeGuiLogic logic;
+    /** Reference to the registered ingredients. */
     public static RegisteredIngredients registeredIngredients;
+    /** Reference to the ingredient list overlay. */
     public static IIngredientListOverlay ingredientListOverlay;
+    /** Reference to the recipes GUI. */
     public static RecipesGui recipesGui;
+    /** Reference to the recipe transfer manager. */
     public static RecipeTransferManager recipeTransferManager;
+    /** Reference to the advanced ingredient list grid. */
     public static AdvancedIngredientListGrid historyGrid;
+    /** Reference to the bookmark overlay. */
     public static IBookmarkOverlay bookmarkOverlay;
 
     @Override
@@ -57,7 +73,12 @@ public class JeiRecipeHistoryPlugin implements IModPlugin {
 
     /**
      * Called by ASM in constructor_redirect3.js
+     *
+     * @param recipeManager    The recipe manager instance.
+     * @param jeiHelpers       The JEI helpers instance.
+     * @param ingredientManager The ingredient manager instance.
      */
+     // Called by ASM in constructor_redirect3.js
     @SuppressWarnings("unused")
     public static void setEarlyValue(IRecipeManager recipeManager, IJeiHelpers jeiHelpers, IIngredientManager ingredientManager) {
         JeiRecipeHistoryPlugin.recipeManager = recipeManager;
@@ -67,8 +88,5 @@ public class JeiRecipeHistoryPlugin implements IModPlugin {
         JeiRecipeHistoryPlugin.guiHelper = jeiHelpers.getGuiHelper();
         JeiRecipeHistoryPlugin.modIdHelper = jeiHelpers.getModIdHelper();
     }
-
-
-
 
 }

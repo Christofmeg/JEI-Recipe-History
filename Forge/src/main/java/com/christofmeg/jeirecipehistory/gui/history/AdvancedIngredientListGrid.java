@@ -58,16 +58,43 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
     private int historyMaxSize;
     private int historyHeight;
 
-        @SuppressWarnings("unused")
-        public static IngredientGrid create(RegisteredIngredients registeredIngredients, IIngredientGridConfig gridConfig, IEditModeConfig editModeConfig, IIngredientFilterConfig ingredientFilterConfig, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IModIdHelper modIdHelper, IConnectionToServer serverConnection
+    /**
+     * Creates an IngredientGrid based on the provided configurations and helper objects.
+     *
+     * @param registeredIngredients The RegisteredIngredients object.
+     * @param gridConfig The IIngredientGridConfig object representing the grid configuration.
+     * @param editModeConfig The IEditModeConfig object representing the edit mode configuration.
+     * @param ingredientFilterConfig The IIngredientFilterConfig object representing the ingredient filter configuration.
+     * @param clientConfig The IClientConfig object representing the client configuration.
+     * @param worldConfig The IWorldConfig object representing the world configuration.
+     * @param guiScreenHelper The GuiScreenHelper object.
+     * @param modIdHelper The IModIdHelper object.
+     * @param serverConnection The IConnectionToServer object representing the server connection.
+     * @return An instance of IngredientGrid based on the configurations and helper objects.
+     */
+    @SuppressWarnings("unused")
+    public static IngredientGrid create(RegisteredIngredients registeredIngredients, IIngredientGridConfig gridConfig, IEditModeConfig editModeConfig, IIngredientFilterConfig ingredientFilterConfig, IClientConfig clientConfig, IWorldConfig worldConfig, GuiScreenHelper guiScreenHelper, IModIdHelper modIdHelper, IConnectionToServer serverConnection
     ) {
-            if(JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
-                return new IngredientGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
-            } else {
-                return JeiRecipeHistoryPlugin.historyGrid = new AdvancedIngredientListGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
-            }
+        if(JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
+            return new IngredientGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
+        } else {
+            return JeiRecipeHistoryPlugin.historyGrid = new AdvancedIngredientListGrid(registeredIngredients, gridConfig, editModeConfig, ingredientFilterConfig, clientConfig, worldConfig, guiScreenHelper, modIdHelper, serverConnection);
         }
+    }
 
+    /**
+     * Creates an instance of AdvancedIngredientListGrid.
+     *
+     * @param registeredIngredients   The registered ingredients.
+     * @param gridConfig              The ingredient grid configuration.
+     * @param editModeConfig          The edit mode configuration.
+     * @param ingredientFilterConfig  The ingredient filter configuration.
+     * @param clientConfig            The client configuration.
+     * @param worldConfig             The world configuration.
+     * @param guiScreenHelper         The GUI screen helper.
+     * @param modIdHelper             The mod ID helper.
+     * @param serverConnection        The server connection.
+     */
     public AdvancedIngredientListGrid(
                 RegisteredIngredients registeredIngredients,
                 IIngredientGridConfig gridConfig,
@@ -92,29 +119,67 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
             this.historyList = new ArrayList<>();
         }
 
-        /**
-         * Draws Ingredient list, config buttons, bookmarks and recipe history on screen
-         */
-        @Override
-        public boolean updateBounds(@NotNull ImmutableRect2i availableArea, @NotNull Collection<ImmutableRect2i> exclusionAreas) {
-            /**
-             * Updates ingredient list
-             */
+    /**
+     * Updates the bounds of the ingredient list and history list based on the available area and exclusion areas.
+     *
+     * @param availableArea     The available area for rendering the ingredient list and history list.
+     * @param exclusionAreas    Collection of areas to be excluded from rendering.
+     * @return                  {@code true} if the bounds were updated successfully, {@code false} otherwise.
+     */
+    // Draws Ingredient list, config buttons, bookmarks and recipe history on screen
+    @Override
+    public boolean updateBounds(@NotNull ImmutableRect2i availableArea, @NotNull Collection<ImmutableRect2i> exclusionAreas) {
+
+        // Updates ingredient list
+        accessor.getIngredientListRenderer().clear();
+        this.historyListRender.clear();
+
+        // Draws searchbar and ingredient grid pages
+        accessor.setArea(calculateBounds(accessor.getGridConfig(), availableArea));
+        ImmutableRect2i area = this.getArea();
+        if (area.isEmpty()) {
+            return false;
+        }
+
+        historyHeight = showHistory ? JeiRecipeHistoryConfig.getRowCount() * INGREDIENT_HEIGHT : 0;
+
+        for (int y = area.getY(); y < area.getY() + area.getHeight() - historyHeight; y += INGREDIENT_HEIGHT) {
+            for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
+                IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
+                ImmutableRect2i stackArea = ingredientListSlot.getArea();
+                final boolean blocked = MathUtil.intersects(exclusionAreas, stackArea);
+                ingredientListSlot.setBlocked(blocked);
+                accessor.getIngredientListRenderer().add(ingredientListSlot);
+            }
+        }
+
+        if (showHistory) {
+            int startY = area.getY() + area.getHeight() - historyHeight;
+            for (int y = startY; y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
+                for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
+                    IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
+                    ImmutableRect2i stackArea = ingredientListSlot.getArea();
+                    final boolean blocked = MathUtil.intersects(exclusionAreas, stackArea);
+                    ingredientListSlot.setBlocked(blocked);
+                    historyListRender.add(ingredientListSlot);
+                }
+            }
+            this.historyListRender.set(0, this.historyList);
+        }
+
+        // Makes sure the recipe history renders items when gui screen size changes
+        this.historyListRender.set(0, this.historyList);
+
+        if (!JeiRecipeHistoryConfig.isRecipeHistoryEnabled() || JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
             accessor.getIngredientListRenderer().clear();
             this.historyListRender.clear();
 
-            /**
-             * Draws searchbar and ingredient grid pages
-             */
             accessor.setArea(calculateBounds(accessor.getGridConfig(), availableArea));
-            ImmutableRect2i area = this.getArea();
             if (area.isEmpty()) {
                 return false;
             }
 
-            historyHeight = showHistory ? JeiRecipeHistoryConfig.getRowCount() * INGREDIENT_HEIGHT : 0;
-
-            for (int y = area.getY(); y < area.getY() + area.getHeight() - historyHeight; y += INGREDIENT_HEIGHT) {
+            for (int y = area.getY(); y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
                 for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
                     IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
                     ImmutableRect2i stackArea = ingredientListSlot.getArea();
@@ -123,76 +188,46 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
                     accessor.getIngredientListRenderer().add(ingredientListSlot);
                 }
             }
-
-            if (showHistory) {
-                int startY = area.getY() + area.getHeight() - historyHeight;
-                for (int y = startY; y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
-                    for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
-                        IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
-                        ImmutableRect2i stackArea = ingredientListSlot.getArea();
-                        final boolean blocked = MathUtil.intersects(exclusionAreas, stackArea);
-                        ingredientListSlot.setBlocked(blocked);
-                        historyListRender.add(ingredientListSlot);
-                    }
-                }
-                this.historyListRender.set(0, this.historyList);
-            }
-
-            /**
-             * Makes sure the recipe history renders items when gui screen size changes
-             */
-            this.historyListRender.set(0, this.historyList);
-
-            if (!JeiRecipeHistoryConfig.isRecipeHistoryEnabled() || JeiRecipeHistoryConfig.isAllModFeatuesDisabled()) {
-                accessor.getIngredientListRenderer().clear();
-                this.historyListRender.clear();
-
-                accessor.setArea(calculateBounds(accessor.getGridConfig(), availableArea));
-                if (area.isEmpty()) {
-                    return false;
-                }
-
-                for (int y = area.getY(); y < area.getY() + area.getHeight(); y += INGREDIENT_HEIGHT) {
-                    for (int x = area.getX(); x < area.getX() + area.getWidth(); x += INGREDIENT_WIDTH) {
-                        IngredientListSlot ingredientListSlot = new IngredientListSlot(x, y, INGREDIENT_WIDTH, INGREDIENT_HEIGHT, INGREDIENT_PADDING);
-                        ImmutableRect2i stackArea = ingredientListSlot.getArea();
-                        final boolean blocked = MathUtil.intersects(exclusionAreas, stackArea);
-                        ingredientListSlot.setBlocked(blocked);
-                        accessor.getIngredientListRenderer().add(ingredientListSlot);
-                    }
-                }
-            }
-
-            return true;
         }
 
-        private ImmutableRect2i calculateBounds(@NotNull IIngredientGridConfig config, @NotNull ImmutableRect2i availableArea) {
-            final int columns = Math.min(availableArea.getWidth() / IngredientGrid.INGREDIENT_WIDTH, config.getMaxColumns());
-            final int rows = Math.min(availableArea.getHeight() / IngredientGrid.INGREDIENT_HEIGHT, config.getMaxRows());
-            this.showHistory = rows - JeiRecipeHistoryConfig.getRowCount() >= MIN_ROWS;
+        return true;
+    }
 
-            if (rows < config.getMinRows() || columns < config.getMinColumns()) {
-                return ImmutableRect2i.EMPTY;
-            }
-            this.historyMaxSize = JeiRecipeHistoryConfig.getRowCount() * columns;
-            final int width = columns * IngredientGrid.INGREDIENT_WIDTH;
-            final int height = rows * IngredientGrid.INGREDIENT_HEIGHT;
+    private ImmutableRect2i calculateBounds(@NotNull IIngredientGridConfig config, @NotNull ImmutableRect2i availableArea) {
+        final int columns = Math.min(availableArea.getWidth() / IngredientGrid.INGREDIENT_WIDTH, config.getMaxColumns());
+        final int rows = Math.min(availableArea.getHeight() / IngredientGrid.INGREDIENT_HEIGHT, config.getMaxRows());
+        this.showHistory = rows - JeiRecipeHistoryConfig.getRowCount() >= MIN_ROWS;
 
-            final int x = switch (config.getHorizontalAlignment()) {
-                case LEFT -> availableArea.getX();
-                case CENTER -> availableArea.getX() + ((availableArea.getWidth() - width) / 2);
-                case RIGHT -> availableArea.getX() + (availableArea.getWidth() - width);
-            };
-
-            final int y = switch (config.getVerticalAlignment()) {
-                case TOP -> availableArea.getY();
-                case CENTER -> availableArea.getY() + ((availableArea.getHeight() - height) / 2);
-                case BOTTOM -> availableArea.getY() + (availableArea.getHeight() - height);
-            };
-
-            return new ImmutableRect2i(x, y, width, height);
+        if (rows < config.getMinRows() || columns < config.getMinColumns()) {
+            return ImmutableRect2i.EMPTY;
         }
+        this.historyMaxSize = JeiRecipeHistoryConfig.getRowCount() * columns;
+        final int width = columns * IngredientGrid.INGREDIENT_WIDTH;
+        final int height = rows * IngredientGrid.INGREDIENT_HEIGHT;
 
+        final int x = switch (config.getHorizontalAlignment()) {
+            case LEFT -> availableArea.getX();
+            case CENTER -> availableArea.getX() + ((availableArea.getWidth() - width) / 2);
+            case RIGHT -> availableArea.getX() + (availableArea.getWidth() - width);
+        };
+
+        final int y = switch (config.getVerticalAlignment()) {
+            case TOP -> availableArea.getY();
+            case CENTER -> availableArea.getY() + ((availableArea.getHeight() - height) / 2);
+            case BOTTOM -> availableArea.getY() + (availableArea.getHeight() - height);
+        };
+
+        return new ImmutableRect2i(x, y, width, height);
+    }
+
+    /**
+     * Draws the ingredient list, config buttons, bookmarks, and recipe history on the screen.
+     *
+     * @param minecraft The Minecraft instance.
+     * @param poseStack The PoseStack for rendering.
+     * @param mouseX    The X position of the mouse.
+     * @param mouseY    The Y position of the mouse.
+     */
     @Override
     public void draw(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
         super.draw(minecraft, poseStack, mouseX, mouseY);
@@ -228,141 +263,185 @@ public class AdvancedIngredientListGrid extends IngredientGrid {
         }
     }
 
-        @Override
-        public void drawTooltips(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
-            super.drawTooltips(minecraft, poseStack, mouseX, mouseY);
-            if (isMouseOver(mouseX, mouseY)) {
-                this.historyListRender.getSlots()
-                        .filter(s -> s.isMouseOver(mouseX, mouseY))
-                        .map(IngredientListSlot::getTypedIngredient)
-                        .flatMap(Optional::stream)
-                        .findFirst()
-                        .ifPresent(ingredient -> accessor.getTooltipHelper().drawTooltip(poseStack, mouseX, mouseY, ingredient));
-            }
+    /**
+     * Draws tooltips for the ingredient list and history list.
+     *
+     * @param minecraft The Minecraft instance.
+     * @param poseStack The PoseStack for rendering.
+     * @param mouseX    The X position of the mouse.
+     * @param mouseY    The Y position of the mouse.
+     */
+    @Override
+    public void drawTooltips(@NotNull Minecraft minecraft, @NotNull PoseStack poseStack, int mouseX, int mouseY) {
+        super.drawTooltips(minecraft, poseStack, mouseX, mouseY);
+        if (isMouseOver(mouseX, mouseY)) {
+            this.historyListRender.getSlots()
+                    .filter(s -> s.isMouseOver(mouseX, mouseY))
+                    .map(IngredientListSlot::getTypedIngredient)
+                    .flatMap(Optional::stream)
+                    .findFirst()
+                    .ifPresent(ingredient -> accessor.getTooltipHelper().drawTooltip(poseStack, mouseX, mouseY, ingredient));
         }
-
-        @Override
-        public @NotNull Stream<IClickedIngredient<?>> getIngredientUnderMouse(double mouseX, double mouseY) {
-            return Stream.concat(
-                    super.getIngredientUnderMouse(mouseX, mouseY),
-                    historyListRender.getSlots()
-                            .filter(s -> s.isMouseOver(mouseX, mouseY))
-                            .map(IngredientListSlot::getIngredientRenderer)
-                            .flatMap(Optional::stream)
-            );
-        }
-
-        /**
-         * Copied from <a href="https://github.com/shedaniel/RoughlyEnoughItems/blob/8.x-1.18.2/runtime/src/main/java/me/shedaniel/rei/impl/client/gui/widget/favorites/history/DisplayHistoryWidget.java">...</a>
-         */
-        private void drawHorizontalDashedLine(PoseStack poseStack, int x1, int x2, int y, int color, boolean reverse) {
-            float offset = (System.currentTimeMillis() % 600) / 100.0F;
-            if (!reverse) offset = 6 - offset;
-
-            RenderSystem.disableTexture();
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShader(GameRenderer::getPositionColorShader);
-            Tesselator tesselator = Tesselator.getInstance();
-            BufferBuilder builder = tesselator.getBuilder();
-            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-            float a = (float) (color >> 24 & 255) / 255.0F;
-            float r = (float) (color >> 16 & 255) / 255.0F;
-            float g = (float) (color >> 8 & 255) / 255.0F;
-            float b = (float) (color & 255) / 255.0F;
-            Matrix4f pose = poseStack.last().pose();
-
-            for (float x = x1 - offset; x < x2; x += 7) {
-                builder.vertex(pose, Mth.clamp(x + 4, x1, x2), y, 0).color(r, g, b, a).endVertex();
-                builder.vertex(pose, Mth.clamp(x, x1, x2), y, 0).color(r, g, b, a).endVertex();
-                builder.vertex(pose, Mth.clamp(x, x1, x2), y + 1, 0).color(r, g, b, a).endVertex();
-                builder.vertex(pose, Mth.clamp(x + 4, x1, x2), y + 1, 0).color(r, g, b, a).endVertex();
-            }
-
-            tesselator.end();
-            RenderSystem.disableBlend();
-            RenderSystem.enableTexture();
-        }
-
-        /**
-         * Copied from <a href="https://github.com/shedaniel/RoughlyEnoughItems/blob/8.x-1.18.2/runtime/src/main/java/me/shedaniel/rei/impl/client/gui/widget/favorites/history/DisplayHistoryWidget.java">...</a>
-         */
-        private void drawVerticalDashedLine(PoseStack poseStack, int x, int y1, int y2, int color, boolean reverse) {
-            float offset = (System.currentTimeMillis() % 600) / 100.0F;
-            if (!reverse) offset = 6 - offset;
-
-            RenderSystem.disableTexture();
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-            RenderSystem.setShader(GameRenderer::getPositionColorShader);
-            Tesselator tesselator = Tesselator.getInstance();
-            BufferBuilder builder = tesselator.getBuilder();
-            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-            float a = (float) (color >> 24 & 255) / 255.0F;
-            float r = (float) (color >> 16 & 255) / 255.0F;
-            float g = (float) (color >> 8 & 255) / 255.0F;
-            float b = (float) (color & 255) / 255.0F;
-            Matrix4f pose = poseStack.last().pose();
-
-            for (float y = y1 - offset; y < y2; y += 7) {
-                builder.vertex(pose, x + 1, Mth.clamp(y, y1, y2), 0).color(r, g, b, a).endVertex();
-                builder.vertex(pose, x, Mth.clamp(y, y1, y2), 0).color(r, g, b, a).endVertex();
-                builder.vertex(pose, x, Mth.clamp(y + 4, y1, y2), 0).color(r, g, b, a).endVertex();
-                builder.vertex(pose, x + 1, Mth.clamp(y + 4, y1, y2), 0).color(r, g, b, a).endVertex();
-            }
-
-            tesselator.end();
-            RenderSystem.disableBlend();
-            RenderSystem.enableTexture();
-        }
-
-        public void addHistory(@NotNull ITypedIngredient<?> ingredient) {
-            if (ingredient.getIngredient() instanceof IRecipeInfo recipeInfo) {
-                ingredient = createTypedIngredient(recipeInfo.getOutput());
-            }
-            if (ingredient != null) {
-                Optional<? extends ITypedIngredient<?>> normalized = TypedIngredient.normalize(registeredIngredients, ingredient);
-                if (normalized.isPresent()) {
-                    ingredient = normalized.get();
-                    IIngredientHelper ingredientHelper = registeredIngredients.getIngredientHelper(ingredient.getType());
-                    String uniqueId = ingredientHelper.getUniqueId(ingredient.getIngredient(), UidContext.Ingredient);
-                    @NotNull ITypedIngredient<?> value = ingredient;
-                    historyList.removeIf(element -> equal(ingredientHelper, value, uniqueId, element));
-                    historyList.add(0, ingredient);
-                    if (historyList.size() > historyMaxSize) {
-                        historyList.remove(historyMaxSize);
-                    }
-                    historyListRender.set(0, historyList);
-                }
-            }
-        }
-
-        /**
-         * copy from mezz.jei.bookmarks.BookmarkList#equal(IIngredientHelper, ITypedIngredient, String, ITypedIngredient)
-         */
-        private static <T> boolean equal(IIngredientHelper<T> ingredientHelper, @NotNull ITypedIngredient<T> a, String uidA, @NotNull ITypedIngredient<?> b) {
-            if (a.getIngredient() == b.getIngredient()) {
-                return true;
-            }
-
-            if (a.getIngredient() instanceof ItemStack itemStackA && b.getIngredient() instanceof ItemStack itemStackB) {
-                if (JeiRecipeHistoryConfig.shouldMatchNBTTags()) {
-                    return itemStackA.equals(itemStackB, true);
-                } else {
-                    return ItemStack.isSame(itemStackA, itemStackB);
-                }
-            }
-
-            Optional<T> filteredB = b.getIngredient(a.getType());
-            if (filteredB.isPresent()) {
-                T ingredientB = filteredB.get();
-                String uidB = ingredientHelper.getUniqueId(ingredientB, UidContext.Ingredient);
-                return uidA.equals(uidB);
-            }
-
-            return false;
-        }
-
     }
+
+    /**
+     * Overrides the getIngredientUnderMouse method to include the historyListRender's slots.
+     *
+     * @param mouseX The X position of the mouse.
+     * @param mouseY The Y position of the mouse.
+     * @return A stream of clicked ingredients under the mouse.
+     */
+    @Override
+    public @NotNull Stream<IClickedIngredient<?>> getIngredientUnderMouse(double mouseX, double mouseY) {
+        return Stream.concat(
+                super.getIngredientUnderMouse(mouseX, mouseY),
+                historyListRender.getSlots()
+                        .filter(s -> s.isMouseOver(mouseX, mouseY))
+                        .map(IngredientListSlot::getIngredientRenderer)
+                        .flatMap(Optional::stream)
+        );
+    }
+
+    /**
+     * Draws a horizontal dashed line on the screen.
+     *
+     * @param poseStack The PoseStack for rendering.
+     * @param x1        The starting X position of the line.
+     * @param x2        The ending X position of the line.
+     * @param y         The Y position of the line.
+     * @param color     The color of the line.
+     * @param reverse   Specifies whether to reverse the offset.
+     */
+     // Copied from <a href="https://github.com/shedaniel/RoughlyEnoughItems/blob/8.x-1.18.2/runtime/src/main/java/me/shedaniel/rei/impl/client/gui/widget/favorites/history/DisplayHistoryWidget.java">...</a>
+    private void drawHorizontalDashedLine(PoseStack poseStack, int x1, int x2, int y, int color, boolean reverse) {
+        float offset = (System.currentTimeMillis() % 600) / 100.0F;
+        if (!reverse) offset = 6 - offset;
+
+        RenderSystem.disableTexture();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder builder = tesselator.getBuilder();
+        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+        Matrix4f pose = poseStack.last().pose();
+
+        for (float x = x1 - offset; x < x2; x += 7) {
+            builder.vertex(pose, Mth.clamp(x + 4, x1, x2), y, 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, Mth.clamp(x, x1, x2), y, 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, Mth.clamp(x, x1, x2), y + 1, 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, Mth.clamp(x + 4, x1, x2), y + 1, 0).color(r, g, b, a).endVertex();
+        }
+
+        tesselator.end();
+        RenderSystem.disableBlend();
+        RenderSystem.enableTexture();
+    }
+
+    /**
+     * Draws a vertical dashed line on the screen.
+     *
+     * @param poseStack The PoseStack for rendering.
+     * @param x         The X position of the line.
+     * @param y1        The starting Y position of the line.
+     * @param y2        The ending Y position of the line.
+     * @param color     The color of the line.
+     * @param reverse   Specifies whether to reverse the offset.
+     */
+     // Copied from <a href="https://github.com/shedaniel/RoughlyEnoughItems/blob/8.x-1.18.2/runtime/src/main/java/me/shedaniel/rei/impl/client/gui/widget/favorites/history/DisplayHistoryWidget.java">...</a>
+    private void drawVerticalDashedLine(PoseStack poseStack, int x, int y1, int y2, int color, boolean reverse) {
+        float offset = (System.currentTimeMillis() % 600) / 100.0F;
+        if (!reverse) offset = 6 - offset;
+
+        RenderSystem.disableTexture();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        Tesselator tesselator = Tesselator.getInstance();
+        BufferBuilder builder = tesselator.getBuilder();
+        builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+
+        float a = (float) (color >> 24 & 255) / 255.0F;
+        float r = (float) (color >> 16 & 255) / 255.0F;
+        float g = (float) (color >> 8 & 255) / 255.0F;
+        float b = (float) (color & 255) / 255.0F;
+        Matrix4f pose = poseStack.last().pose();
+
+        for (float y = y1 - offset; y < y2; y += 7) {
+            builder.vertex(pose, x + 1, Mth.clamp(y, y1, y2), 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x, Mth.clamp(y, y1, y2), 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x, Mth.clamp(y + 4, y1, y2), 0).color(r, g, b, a).endVertex();
+            builder.vertex(pose, x + 1, Mth.clamp(y + 4, y1, y2), 0).color(r, g, b, a).endVertex();
+        }
+
+        tesselator.end();
+        RenderSystem.disableBlend();
+        RenderSystem.enableTexture();
+    }
+
+    /**
+     * Adds an ingredient to the history list.
+     *
+     * @param ingredient The ingredient to add.
+     */
+    public void addHistory(@NotNull ITypedIngredient<?> ingredient) {
+        if (ingredient.getIngredient() instanceof IRecipeInfo recipeInfo) {
+            ingredient = createTypedIngredient(recipeInfo.getOutput());
+        }
+        if (ingredient != null) {
+            Optional<? extends ITypedIngredient<?>> normalized = TypedIngredient.normalize(registeredIngredients, ingredient);
+            if (normalized.isPresent()) {
+                ingredient = normalized.get();
+                IIngredientHelper ingredientHelper = registeredIngredients.getIngredientHelper(ingredient.getType());
+                String uniqueId = ingredientHelper.getUniqueId(ingredient.getIngredient(), UidContext.Ingredient);
+                @NotNull ITypedIngredient<?> value = ingredient;
+                historyList.removeIf(element -> equal(ingredientHelper, value, uniqueId, element));
+                historyList.add(0, ingredient);
+                if (historyList.size() > historyMaxSize) {
+                    historyList.remove(historyMaxSize);
+                }
+                historyListRender.set(0, historyList);
+            }
+        }
+    }
+
+    /**
+     * Checks if two ingredients are equal based on their ingredient type and unique IDs.
+     *
+     * @param ingredientHelper The ingredient helper.
+     * @param a               The first ingredient.
+     * @param uidA            The unique ID of the first ingredient.
+     * @param b               The second ingredient.
+     * @param <T>             The type of the ingredients.
+     * @return {@code true} if the ingredients are equal, {@code false} otherwise.
+     */
+     // copy from mezz.jei.bookmarks.BookmarkList#equal(IIngredientHelper, ITypedIngredient, String, ITypedIngredient)
+    private static <T> boolean equal(IIngredientHelper<T> ingredientHelper, @NotNull ITypedIngredient<T> a, String uidA, @NotNull ITypedIngredient<?> b) {
+        if (a.getIngredient() == b.getIngredient()) {
+            return true;
+        }
+
+        if (a.getIngredient() instanceof ItemStack itemStackA && b.getIngredient() instanceof ItemStack itemStackB) {
+            if (JeiRecipeHistoryConfig.shouldMatchNBTTags()) {
+                return itemStackA.equals(itemStackB, true);
+            } else {
+                return ItemStack.isSame(itemStackA, itemStackB);
+            }
+        }
+
+        Optional<T> filteredB = b.getIngredient(a.getType());
+        if (filteredB.isPresent()) {
+            T ingredientB = filteredB.get();
+            String uidB = ingredientHelper.getUniqueId(ingredientB, UidContext.Ingredient);
+            return uidA.equals(uidB);
+        }
+
+        return false;
+    }
+
+}

@@ -6,13 +6,27 @@ import mezz.jei.recipes.RecipeTransferManager;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
+/**
+ * Mixin interface for accessing protected members of the RecipesGui class.
+ */
 @Mixin(value = RecipesGui.class, remap = false)
 public interface RecipesGuiAccessor {
 
+    /**
+     * Accessor method for retrieving the recipe gui logic.
+     *
+     * @return The recipe gui logic.
+     */
     @Accessor
     IRecipeGuiLogic getLogic();
 
+    /**
+     * Accessor method for retrieving the recipe transfer manager.
+     *
+     * @return The recipe transfer manager.
+     */
     @Accessor
     RecipeTransferManager getRecipeTransferManager();
 
 }
+
