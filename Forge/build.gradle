@@ -140,10 +140,8 @@ tasks.register('publishCurseForge', TaskPublishCurseForge) {
     "${forge_release_versions}".split(',').each {
         mainFile.addGameVersion("${it}")
     }
-    mainFile.addRequirement("jade")
-    mainFile.addRequirement("mekanism")
+    mainFile.addRequirement("jei")
     mainFile.addOptional("catalogue")
-    mainFile.addModLoader('Forge')
 }
 
 modrinth {
@@ -155,8 +153,7 @@ modrinth {
     uploadFile = file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")
     gameVersions = "${forge_release_versions}".split(",") as List<String>
     dependencies {
-        required.project "jade"
-        required.project "mekanism"
+        required.version "jei", "${jei_min_version}"
     }
     loaders = "forge".split(",") as List<String>
 }
