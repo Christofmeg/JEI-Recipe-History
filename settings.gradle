@@ -2,6 +2,10 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven {
+            name = 'Quilt'
+            url = 'https://maven.quiltmc.org/repository/release'
+        }
+        maven {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
         }
@@ -9,10 +13,22 @@ pluginManagement {
             name = 'Sponge Snapshots'
             url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
+        mavenCentral()
+        repositories {
+            maven { url = 'https://maven.parchmentmc.org' }
+        }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.toString() == 'org.spongepowered.mixin') {
+                useModule("org.spongepowered:mixingradle:${requested.version}")
+            }
+        }
     }
 }
 
 rootProject.name = 'JEI Recipe History'
-include("Common",
- //       "Fabric",
-        "Forge")
+include("Common")
+//include("Fabric")
+include("Forge")
+//nclude("Quilt")

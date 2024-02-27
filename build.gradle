@@ -55,6 +55,8 @@ subprojects {
             }
         }
 
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+
     }
 
     tasks.withType(JavaCompile).configureEach {
