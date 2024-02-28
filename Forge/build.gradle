@@ -9,7 +9,7 @@ plugins {
     id 'org.spongepowered.mixin' version '0.7-SNAPSHOT'
 }
 
-archivesBaseName = "${mod_id}-forge-${minecraft_version}"
+archivesBaseName = "${mod_id}-forge-${forge_supported_versions}"
 
 mixin {
     add sourceSets.main, "${mod_id}.refmap.json"
@@ -17,7 +17,7 @@ mixin {
 }
 
 minecraft {
-    mappings channel: 'official', version: minecraft_version
+    mappings channel: mapping_channel, version: minecraft_version
 
     runs {
         client {
@@ -75,13 +75,9 @@ dependencies {
 	
 	// JEI
 	implementation fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
-    // CONFIGURED
-    if (project.hasProperty('configured_version')) {
-        implementation fg.deobf("curse.maven:configured-457570:${configured_version}")
-    }
     // CATALOGUE
-    if (project.hasProperty('catalogue_version')) {
-        implementation fg.deobf("curse.maven:catalogue-459701:${catalogue_version}")
+    if (project.hasProperty('forge_catalogue_version')) {
+        implementation fg.deobf("curse.maven:catalogue-459701:${forge_catalogue_version}")
     }
 	// CONFIGURED
     if (project.hasProperty('forge_configured_version')) {
