@@ -1,38 +1,32 @@
 modLoader="javafml"
-loaderVersion="[40,)"
-issueTrackerURL="https://github.com/Christofmeg/JEI-Recipe-History/issues" #optional
-license="The MIT License (MIT)"
+loaderVersion="${forge_loader_version_range}"
+issueTrackerURL="${issueTrackerURL}"
+license="${mod_license}"
 [[mods]]
-modId="jeirecipehistory"
-version="${file.jarVersion}"
-displayName="JEI Recipe History"
-displayURL="https://github.com/Christofmeg/JEI-Recipe-History" #optional
-logoFile="jeirecipehistory.png"
-authors="Christofmeg"
-description="Client side history of recent JEI recipe lookups."
-[[dependencies.jeirecipehistory]]
+    modId="${mod_id}"
+    version="${version}"
+    displayName="${display_name}"
+    displayURL="${displayURL}"
+    authors="${mod_authors}"
+    description="${mod_description}"
+    logoFile="icon.png"
+[[dependencies.${mod_id}]]
     modId="forge"
     mandatory=true
-    versionRange="[40.0.7,)"
+    versionRange="${forge_version_range}"
     ordering="NONE"
     side="BOTH"
-[[dependencies.jeirecipehistory]]
+[[dependencies.${mod_id}]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18,1.19)"
+    versionRange="${forge_minecraft_version_range}"
     ordering="NONE"
     side="BOTH"
-[[dependencies.jeirecipehistory]]
+[[dependencies.${mod_id}]]
     modId="jei"
     mandatory=true
-    versionRange="[9.6.0.179,10)"
+    versionRange="${jei_version_range}"
     ordering="AFTER"
     side="CLIENT"
-#[[dependencies.jeirecipehistory]]
-#    modId="jeiutilities"
-#    mandatory=false
-#    versionRange="any"
-#    ordering="BEFORE"
-#    side="CLIENT"
-[modproperties.jeirecipehistory]
+[modproperties.${mod_id}]
     catalogueImageIcon="jeirecipehistory-icon.png"
