@@ -3,9 +3,11 @@ package com.christofmeg.jeirecipehistory.config;
 import com.christofmeg.jeirecipehistory.gui.textures.ModTextures;
 import com.christofmeg.jeirecipehistory.platform.services.IPlatformConfigHelper;
 import mezz.jei.api.gui.drawable.IDrawable;
+/*
 import mezz.jei.gui.elements.GuiIconToggleButton;
 import mezz.jei.gui.overlay.bookmarks.BookmarkOverlay;
 import mezz.jei.input.UserInput;
+*/
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;

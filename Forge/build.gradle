@@ -72,9 +72,13 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":Common")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-	
-	// JEI
-	implementation fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+
+    // JEI
+    if (project.hasProperty('jei_version')) {
+        compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"))
+        compileOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}"))
+        runtimeOnly(fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}"))
+    }
     // CONFIGURED
     if (project.hasProperty('configured_version')) {
         implementation fg.deobf("curse.maven:configured-457570:${configured_version}")

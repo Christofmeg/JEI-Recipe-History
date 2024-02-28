@@ -1,7 +1,6 @@
 package com.christofmeg.jeirecipehistory.gui.textures;
 
 import com.christofmeg.jeirecipehistory.Constants;
-import mezz.jei.gui.textures.JeiSpriteUploader;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.TextureAtlasHolder;
@@ -13,7 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * Based on {@link JeiSpriteUploader}
+ * Based on {mezz.jei.gui.textures.JeiSpriteUploader}
  */
 public class SpritesManager extends TextureAtlasHolder {
 

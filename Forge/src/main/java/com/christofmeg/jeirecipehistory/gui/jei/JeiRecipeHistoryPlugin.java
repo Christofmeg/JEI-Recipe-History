@@ -11,14 +11,13 @@ import mezz.jei.api.helpers.IJeiHelpers;
 import mezz.jei.api.helpers.IModIdHelper;
 import mezz.jei.api.recipe.IFocusFactory;
 import mezz.jei.api.recipe.IRecipeManager;
-import mezz.jei.api.runtime.IBookmarkOverlay;
-import mezz.jei.api.runtime.IIngredientListOverlay;
-import mezz.jei.api.runtime.IIngredientManager;
-import mezz.jei.api.runtime.IJeiRuntime;
+import mezz.jei.api.runtime.*;
+/*
 import mezz.jei.gui.recipes.IRecipeGuiLogic;
 import mezz.jei.gui.recipes.RecipesGui;
 import mezz.jei.ingredients.RegisteredIngredients;
 import mezz.jei.recipes.RecipeTransferManager;
+ */
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +46,7 @@ public class JeiRecipeHistoryPlugin implements IModPlugin {
     /** Reference to the ingredient list overlay. */
     public static IIngredientListOverlay ingredientListOverlay;
     /** Reference to the recipes GUI. */
-    public static RecipesGui recipesGui;
+    public static IRecipesGui recipesGui;
     /** Reference to the recipe transfer manager. */
     public static RecipeTransferManager recipeTransferManager;
     /** Reference to the advanced ingredient list grid. */
@@ -63,7 +62,7 @@ public class JeiRecipeHistoryPlugin implements IModPlugin {
     @Override
     public void onRuntimeAvailable(@NotNull IJeiRuntime jeiRuntime) {
         ingredientListOverlay = jeiRuntime.getIngredientListOverlay();
-        recipesGui = (RecipesGui) jeiRuntime.getRecipesGui();
+        recipesGui = jeiRuntime.getRecipesGui();
         logic = ((RecipesGuiAccessor) recipesGui).getLogic();
         registeredIngredients = ((RecipeGuiLogicAccessor) logic).getRegisteredIngredients();
         recipeTransferManager = ((RecipesGuiAccessor) recipesGui).getRecipeTransferManager();

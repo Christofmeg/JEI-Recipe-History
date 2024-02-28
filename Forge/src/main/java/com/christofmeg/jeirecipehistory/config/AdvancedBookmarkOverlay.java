@@ -4,6 +4,7 @@ import com.christofmeg.jeirecipehistory.mixin.accessor.BookmarkOverlayAccessor;
 import com.christofmeg.jeirecipehistory.recipe.IRecipeInfo;
 import com.mojang.blaze3d.vertex.PoseStack;
 import mezz.jei.api.ingredients.ITypedIngredient;
+/*
 import mezz.jei.bookmarks.BookmarkList;
 import mezz.jei.common.network.IConnectionToServer;
 import mezz.jei.common.util.ImmutableRect2i;
@@ -17,6 +18,7 @@ import mezz.jei.gui.textures.Textures;
 import mezz.jei.input.mouse.IUserInputHandler;
 import mezz.jei.input.mouse.handlers.CombinedInputHandler;
 import mezz.jei.input.mouse.handlers.ProxyInputHandler;
+*/
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,9 +26,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.Set;
 
+/*
 import static mezz.jei.gui.overlay.IngredientGrid.INGREDIENT_HEIGHT;
 import static mezz.jei.gui.overlay.IngredientGrid.INGREDIENT_WIDTH;
-
+*/
 /**
  * The AdvancedBookmarkOverlay class represents an overlay that displays bookmarks and additional functionality.
  * It extends the BookmarkOverlay class.
@@ -42,9 +45,9 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
     private final GuiIconToggleButton recordConfigButton;
     private final IngredientGridWithNavigation contents;
     
-    private @Nullable RecipeLayoutLite recipeLayout;
+    private @Nullable RecipeLayoutLite<?> recipeLayout;
     
-    private IRecipeInfo infoUnderMouse;
+    private IRecipeInfo<?,?> infoUnderMouse;
 
     /**
      * Creates an instance of AdvancedBookmarkOverlay or BookmarkOverlay based on the configuration.
@@ -267,7 +270,7 @@ public class AdvancedBookmarkOverlay extends BookmarkOverlay {
      *
      * @param recipeLayout The RecipeLayoutLite object to set as the recipe layout.
      */
-    public void setRecipeLayout(@Nullable RecipeLayoutLite recipeLayout) {
+    public void setRecipeLayout(@Nullable RecipeLayoutLite<?> recipeLayout) {
         this.recipeLayout = recipeLayout;
     }
 

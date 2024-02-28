@@ -2,7 +2,7 @@ package com.christofmeg.jeirecipehistory.helper;
 
 import com.christofmeg.jeirecipehistory.gui.jei.JeiRecipeHistoryPlugin;
 import mezz.jei.api.ingredients.ITypedIngredient;
-import mezz.jei.ingredients.TypedIngredient;
+//import mezz.jei.ingredients.TypedIngredient;
 
 /**
  * Helper class for working with ingredients.

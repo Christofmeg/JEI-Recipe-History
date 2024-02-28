@@ -12,8 +12,10 @@ minecraft {
 
 dependencies {
     compileOnly group:'org.spongepowered', name:'mixin', version:'0.8.5'
-	implementation ("mezz.jei:jei-${minecraft_version}:${jei_version}")
-    implementation ("mezz.jei:jei-${minecraft_version}-common:10.2.1.1004")
+    // JEI
+    if (project.hasProperty('jei_version')) {
+        implementation("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+    }
 }
 
 processResources {
